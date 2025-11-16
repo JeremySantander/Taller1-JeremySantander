@@ -1,11 +1,14 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect,useState } from 'react'
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
+import { Dropdown } from 'primereact/dropdown';
 import SanQuintaContext from '../providers/context';
         
 function MedicionesView() {
+    const [tipo, setTipo] = useState("---");
     const {mediciones,eliminarMedicion, toast} = useContext(SanQuintaContext);
+    const tiposdemedida = ["---","Kilowatts", "Watts", "Temperatura"];
 
     const handleRemoveMedicion = (medicion) =>{
         eliminarMedicion(medicion);
@@ -19,15 +22,28 @@ function MedicionesView() {
 
     const valorTipo = (medicion) => {
         let tipomedida = '';
-        if (medicion.tipo === 'Kilowatts') tipomedida = 'kW';
-        else if (medicion.tipo === 'Watts') tipomedida = 'W';
-        else if (medicion.tipo === 'Temperatura') tipomedida = 'C';
+        if (medicion.tipo === tiposdemedida[1]) tipomedida = 'kW';
+        else if (medicion.tipo === tiposdemedida[2]) tipomedida = 'W';
+        else if (medicion.tipo === tiposdemedida[3]) tipomedida = 'C';
         return `${medicion.valor} ${tipomedida}`;
     }
 
+    const medicionesMostradas = tipo !== "---" 
+        ? mediciones.filter(m => m.tipo === tipo)
+        : mediciones;
+
+    const header = (
+        <div className="mb-3 d-flex flex-row gap-3 align-items-center">
+            <span className="text-xl text-900 font-bold">Filtrar</span>
+            <Dropdown options={tiposdemedida} value={tipo} placeholder="---" onChange={(e) => setTipo(e.value)}/>
+        </div>
+    );
+
+
+
     return (
-        <DataTable value={mediciones} cellMemo={false} tableStyle={{ minWidth: '50rem' }}>
-            <Column field="fecha" header="Fecha"></Column>
+        <DataTable value={medicionesMostradas} header={header} cellMemo={false} tableStyle={{ minWidth: '50rem' }}>
+            <Column field="fecha" sortable header="Fecha"></Column>
             <Column field="medidor" header="Medidor"></Column>
             <Column field="direccion" header="Direccion"></Column>
             <Column header="Valor" body={valorTipo}></Column>
